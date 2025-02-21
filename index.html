@@ -14,6 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pako@2.0.4/dist/pako.min.js"></script>
     <script>
         let map;
+        let activeInfoWindow;
 
         // Define a color palette
         const colorPalette = [
@@ -54,37 +55,41 @@
                     points.forEach(point => {
                         const markerColor = getCountryColor(point.country);
 
-                        // Custom marker icon with dynamic color
-                        const markerIcon = {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 10,
-                            fillColor: markerColor,
-                            fillOpacity: 1,
-                            strokeWeight: 2,
-                            strokeColor: "#000"
-                        };
-
                         const marker = new google.maps.Marker({
                             position: { lat: point.location.latitude, lng: point.location.longitude },
                             map: map,
                             title: point.name.en + ' (' + point.id + ')',
-                            icon: markerIcon
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 10,
+                                fillColor: markerColor,
+                                fillOpacity: 1,
+                                strokeWeight: 1,
+                                strokeColor: '#000'
+                            }
                         });
 
-                        // Add InfoWindow with name and description
+                        const inventory = JSON.stringify(point.inventory, null, 4)
+                            .replace(/ /g, '&nbsp;')
+                            .replace(/\n/g, '<br/>');
                         const infoWindow = new google.maps.InfoWindow({
                             content: `
                                 <div>
-                                    <h4>${point.name.en}</h4>
-                                    <a href="https://meteostat.net/en/station/${point.id}" target="_blank">View webpage</a>
-                                    <a href="https://bulk.meteostat.net/v2/hourly/${point.id}.csv.gz" target="_blank">Download hourly data</a>
+                                    <h4>${point.name.en} (${point.id})</h4>
+                                    <p>${inventory}</p>
+                                    <a href="https://meteostat.net/en/station/${point.id}" target="_blank">View webpage</a><br/>
+                                    <a href="https://bulk.meteostat.net/v2/hourly/${point.id}.csv.gz" target="_blank">Download hourly data</a><br/>
                                     <a href="https://www.google.com/maps?q=${point.location.latitude},${point.location.longitude}" target="_blank">View on Google Maps</a>
                                 </div>
                             `
                         });
 
                         marker.addListener('click', () => {
+                            if (activeInfoWindow) {
+                                activeInfoWindow.close();
+                            }
                             infoWindow.open(map, marker);
+                            activeInfoWindow = infoWindow
                         });
                     });
                 })
