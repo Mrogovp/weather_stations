@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Google Maps with Country Colors</title>
     <style>
@@ -10,6 +11,7 @@
     </style>
     <!-- Google Maps JavaScript API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1SitYlBDPWNWsCExH-L24jIvL6KQoLLg"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.0.4/dist/pako.min.js"></script>
     <script>
         let map;
 
@@ -45,9 +47,9 @@
                 .then(response => response.arrayBuffer())
                 .then(buffer => {
                     const decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
-                    return JSON.parse(decompressed);
+                    const points = JSON.parse(decompressed);
+                    return points;
                 })
-                .then(response => response.json())
                 .then(points => {
                     points.forEach(point => {
                         const markerColor = getCountryColor(point.country);
@@ -74,7 +76,6 @@
                             content: `
                                 <div>
                                     <h4>${point.name.en}</h4>
-                                    <p>${point.description}</p>
                                     <a href="https://meteostat.net/en/station/${point.id}" target="_blank">View webpage</a>
                                     <a href="https://bulk.meteostat.net/v2/hourly/${point.id}.csv.gz" target="_blank">Download hourly data</a>
                                     <a href="https://www.google.com/maps?q=${point.location.latitude},${point.location.longitude}" target="_blank">View on Google Maps</a>
@@ -93,7 +94,9 @@
         window.onload = initMap;
     </script>
 </head>
+
 <body>
     <div id="map"></div>
 </body>
+
 </html>
