@@ -43,7 +43,7 @@
             });
 
             // Fetch data from meteostat stations JSON file
-            fetch('full.json.gz')
+            fetch('selected_stations.json.gz')
                 .then(response => response.arrayBuffer())
                 .then(buffer => {
                     const decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
