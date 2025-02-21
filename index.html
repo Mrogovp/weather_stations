@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Google Maps with Descriptions</title>
+    <title>Google Maps with Country Colors</title>
     <style>
         #map {
             height: 100vh;
@@ -13,6 +13,26 @@
     <script>
         let map;
 
+        // Define a color palette
+        const colorPalette = [
+            "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#33FFF9",
+            "#F3FF33", "#FF8C33", "#8C33FF", "#33FF8C", "#FF3333"
+        ];
+
+        // Store the assigned colors for each country
+        const countryColors = {};
+
+        // Function to get color for a country
+        function getCountryColor(country) {
+            if (countryColors[country]) {
+                return countryColors[country];
+            } else {
+                const color = colorPalette[Object.keys(countryColors).length % colorPalette.length];
+                countryColors[country] = color;
+                return color;
+            }
+        }
+
         // Load JSON data and initialize the map
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
@@ -20,24 +40,44 @@
                 zoom: 5,
             });
 
-            // Fetch data from external JSON file
-            fetch('stations.json')
+            // Fetch data from meteostat stations JSON file
+            fetch('full.json.gz')
+                .then(response => response.arrayBuffer())
+                .then(buffer => {
+                    const decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
+                    return JSON.parse(decompressed);
+                })
                 .then(response => response.json())
                 .then(points => {
                     points.forEach(point => {
+                        const markerColor = getCountryColor(point.country);
+
+                        // Custom marker icon with dynamic color
+                        const markerIcon = {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 10,
+                            fillColor: markerColor,
+                            fillOpacity: 1,
+                            strokeWeight: 2,
+                            strokeColor: "#000"
+                        };
+
                         const marker = new google.maps.Marker({
-                            position: { lat: point.latitude, lng: point.longitude },
+                            position: { lat: point.location.latitude, lng: point.location.longitude },
                             map: map,
-                            title: point.name
+                            title: point.name.en + ' (' + point.id + ')',
+                            icon: markerIcon
                         });
 
                         // Add InfoWindow with name and description
                         const infoWindow = new google.maps.InfoWindow({
                             content: `
                                 <div>
-                                    <h4>${point.name}</h4>
+                                    <h4>${point.name.en}</h4>
                                     <p>${point.description}</p>
-                                    <a href="https://www.google.com/maps?q=${point.latitude},${point.longitude}" target="_blank">View on Google Maps</a>
+                                    <a href="https://meteostat.net/en/station/${point.id}" target="_blank">View webpage</a>
+                                    <a href="https://bulk.meteostat.net/v2/hourly/${point.id}.csv.gz" target="_blank">Download hourly data</a>
+                                    <a href="https://www.google.com/maps?q=${point.location.latitude},${point.location.longitude}" target="_blank">View on Google Maps</a>
                                 </div>
                             `
                         });
