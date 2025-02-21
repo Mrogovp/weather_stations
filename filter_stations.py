@@ -10,11 +10,17 @@ def read_compressed_json(file_path):
 empty_inventory = {'model': {'start': None, 'end': None}, 'hourly': {'start': None, 'end': None}, 'daily': {'start': None, 'end': None}, 'monthly': {'start': None, 'end': None}, 'normals': {'start': None, 'end': None}}
 
 def filter_points(points, countries):
+    
     print("Before filtering: ", len(points))
     points = [point for point in points if point.get('country') in countries]
+    
     print("After filtering countries: ", len(points))
     points = [point for point in points if point.get('inventory', empty_inventory) != empty_inventory]
+    
     print("After filtering inventory: ", len(points))
+    for point in points:
+        if point["id"] == "99567":
+            print(point["inventory"])
     return points
     
 if __name__ == "__main__":

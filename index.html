@@ -16,23 +16,26 @@
         let map;
         let activeInfoWindow;
 
-        // Define a color palette
-        const colorPalette = [
-            "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#33FFF9",
-            "#F3FF33", "#FF8C33", "#8C33FF", "#33FF8C", "#FF3333"
+        const markerIcons = [
+            "blue-dot",
+            "red-dot",
+            "green-dot",
+            "ltblue-dot",
+            "yellow-dot",
+            "purple-dot",
+            "pink-dot"
         ];
 
-        // Store the assigned colors for each country
-        const countryColors = {};
+        const countryMarkers = {};
 
         // Function to get color for a country
-        function getCountryColor(country) {
-            if (countryColors[country]) {
-                return countryColors[country];
+        function getCountryMarkerColor(country) {
+            if (countryMarkers[country]) {
+                return countryMarkers[country];
             } else {
-                const color = colorPalette[Object.keys(countryColors).length % colorPalette.length];
-                countryColors[country] = color;
-                return color;
+                const marker = markerIcons[Object.keys(countryMarkers).length % markerIcons.length];
+                countryMarkers[country] = marker;
+                return marker;
             }
         }
 
@@ -53,20 +56,11 @@
                 })
                 .then(points => {
                     points.forEach(point => {
-                        const markerColor = getCountryColor(point.country);
-
                         const marker = new google.maps.Marker({
                             position: { lat: point.location.latitude, lng: point.location.longitude },
                             map: map,
                             title: point.name.en + ' (' + point.id + ')',
-                            icon: {
-                                path: google.maps.SymbolPath.CIRCLE,
-                                scale: 10,
-                                fillColor: markerColor,
-                                fillOpacity: 1,
-                                strokeWeight: 1,
-                                strokeColor: '#000'
-                            }
+                            icon: `https://maps.gstatic.com/mapfiles/ms2/micons/${getCountryMarkerColor(point.country)}.png`
                         });
 
                         const inventory = JSON.stringify(point.inventory, null, 4)
